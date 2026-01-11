@@ -5,6 +5,46 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>steamstat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bungee&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <script id="tailwind-config">
+      tailwind.config = {
+          darkMode: "class",
+          theme: {
+              extend: {
+                  colors: {
+                      primary: "#3b82f6",
+                      accent: "#f43f5e",
+                      "background-dark": "#020617",
+                  },
+                  fontFamily: {
+                      sans: ["Plus Jakarta Sans", "sans-serif"],
+                      brand: ["Bungee", "cursive"],
+                  },
+              },
+          },
+      }
+  </script>
+
+  <style>
+      body {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%);
+      }
+      .hero-glow {
+          filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.25));
+      }
+      .text-glow {
+          text-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
+      }
+      .card-blur {
+          backdrop-filter: blur(12px);
+          background: rgba(15, 23, 42, 0.6);
+      }
+  </style>
   </head>
   <body>
     <div id="root"></div>
