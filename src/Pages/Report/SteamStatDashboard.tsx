@@ -351,7 +351,7 @@ const SteamStatDashboard = () => {
         return (
             <div className="min-h-screen bg-slate-950 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-white text-xl font-bold">Loading your gaming shame...</p>
                 </div>
             </div>
@@ -387,7 +387,7 @@ const SteamStatDashboard = () => {
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
-                            <div className="text-red-500">
+                            <div className="text-primary">
                                 <svg className="size-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.1288 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"/>
                                 </svg>
@@ -637,7 +637,7 @@ const SteamStatDashboard = () => {
                         </div>
                         <div className="flex gap-8 overflow-x-auto custom-scrollbar pb-10 px-2">
                             {topDeals.map((game) => (
-                                <div key={game.id} className="max-w-[340px] flex-shrink-0 bg-slate-900/40 rounded-[2.5rem] border-4 border-slate-800 overflow-hidden flex flex-col group hover:shadow-2xl hover:border-red-500/50 transition-all">
+                                <div key={game.id} className="max-w-[340px] flex-shrink-0 bg-slate-900/40 rounded-[2.5rem] border-4 border-slate-800 overflow-hidden flex flex-col group hover:shadow-2xl hover:border-primary/50 transition-all">
                                     <div className="relative h-48 w-full bg-center bg-cover bg-slate-700" style={{ backgroundImage: `url(${game.large_capsule_image || game.header_image})` }}>
                                         {game.discounted && (
                                             <div className="absolute top-4 left-4 px-4 py-2 bg-red-500 text-white text-xs font-black rounded-full shadow-lg tracking-wide animate-pulse">
@@ -652,16 +652,16 @@ const SteamStatDashboard = () => {
                                             {game.discounted ? (
                                                 <div className="flex flex-col">
                                                     <span className="text-slate-500 line-through text-sm">{formatPrice(game.original_price, game.currency)}</span>
-                                                    <span className="text-red-500 font-black text-2xl">{formatPrice(game.final_price, game.currency)}</span>
+                                                    <span className="text-primary font-black text-2xl">{formatPrice(game.final_price, game.currency)}</span>
                                                 </div>
                                             ) : (
-                                                <span className="text-red-500 font-black text-2xl">{formatPrice(game.final_price, game.currency)}</span>
+                                                <span className="text-primary font-black text-2xl">{formatPrice(game.final_price, game.currency)}</span>
                                             )}
                                             <a
                                                 href={`https://store.steampowered.com/app/${game.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-2xl font-black text-sm transition-transform hover:scale-105 shadow-lg"
+                                                className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-black text-sm transition-transform hover:scale-105 shadow-lg"
                                             >
                                                 <TrendingUp className="w-5 h-5" />
                                                 Grab It
@@ -679,7 +679,7 @@ const SteamStatDashboard = () => {
             <footer className="border-t border-slate-800 py-16 bg-slate-950">
                 <div className="max-w-6xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-10">
                     <div className="flex items-center gap-3">
-                        <div className="text-red-500">
+                        <div className="text-primary">
                             <svg className="size-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.1288 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"/>
                             </svg>
