@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, Award } from 'lucide-react';
 
+const scrollbarStyles = `
+.custom-scrollbar::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+}
+`;
+
 // Types
 interface UserProfile {
     steamid: string;
@@ -30,14 +37,31 @@ interface Achievement {
 }
 
 interface StoreGame {
-    appid: number;
+    id: number;
     name: string;
-    header_image: string;
-    price_overview?: {
-        final_formatted: string;
-        discount_percent: number;
+    header_image?: string;
+    discounted: boolean;
+    discount_percent: number;
+    original_price?: number;
+    final_price?: number;
+    currency?: string;
+    large_capsule_image?: string;
+    small_capsule_image?: string;
+}
+
+interface FeaturedCategories {
+    specials?: {
+        items: StoreGame[];
     };
-    short_description: string;
+    coming_soon?: {
+        items: StoreGame[];
+    };
+    top_sellers?: {
+        items: StoreGame[];
+    };
+    new_releases?: {
+        items: StoreGame[];
+    };
 }
 
 interface GenreStat {
@@ -53,6 +77,7 @@ const SteamStatDashboard = () => {
     const [library, setLibrary] = useState<Game[]>([]);
     const [recentGames, setRecentGames] = useState<Game[]>([]);
     const [achievements, setAchievements] = useState<Achievement | null>(null);
+    const [featuredGames, setFeaturedGames] = useState<FeaturedCategories | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -93,6 +118,18 @@ const SteamStatDashboard = () => {
             setProfile(profileData || null);
             setLibrary(libraryData?.games || []);
             setRecentGames(recentData?.games || []);
+
+            // Fetch featured games from Steam Store via backend proxy
+            try {
+                const featuredRes = await fetch(`${API_BASE}/store/featured`);
+                if (featuredRes.ok) {
+                    const featuredData = await featuredRes.json();
+                    console.log(featuredData);
+                    setFeaturedGames(featuredData);
+                }
+            } catch (err) {
+                console.error('Failed to fetch featured games:', err);
+            }
 
             if (libraryData.games?.length > 0) {
                 const topGame = [...libraryData.games]
@@ -291,11 +328,30 @@ const SteamStatDashboard = () => {
             }));
     };
 
+    const formatPrice = (price?: number, currency: string = 'USD') => {
+        if (!price) return 'Free';
+        const priceInDollars = price / 100;
+        return `₹${priceInDollars.toFixed(0)}`;
+    };
+
+    const getRecommendedGames = () => {
+        if (!featuredGames?.specials?.items) return [];
+
+        // Get user's top genre
+        const genreStats = calculateGenreStats();
+        const topGenre = genreStats[0]?.name.toLowerCase();
+
+        // Filter and return discounted games
+        return featuredGames.specials.items
+            .filter(game => game.discounted && game.discount_percent > 20)
+            .slice(0, 6);
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-950 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-white text-xl font-bold">Loading your gaming shame...</p>
                 </div>
             </div>
@@ -320,15 +376,18 @@ const SteamStatDashboard = () => {
     const maxGenreHours = Math.max(...genreStats.map(g => g.hours), 1);
     const gamerStatus = getGamerStatus();
     const currentVibe = getCurrentVibe();
+    const recommendedGames = getRecommendedGames();
+    const topDeals = featuredGames?.specials?.items.slice(0, 8) || [];
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100">
+            <style>{scrollbarStyles}</style>
             {/* Navigation */}
             <nav className="sticky top-0 z-50 w-full bg-slate-950/80 backdrop-blur-xl border-b border-slate-800">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
-                            <div className="text-primary">
+                            <div className="text-red-500">
                                 <svg className="size-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.1288 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"/>
                                 </svg>
@@ -348,10 +407,10 @@ const SteamStatDashboard = () => {
                     <div className="flex flex-col md:flex-row gap-10 items-center relative z-10">
                         <div className="relative">
                             <div
-                                className="bg-center bg-no-repeat aspect-square bg-cover rounded-[2rem] h-52 w-48 border-8 border-slate-800 shadow-2xl rotate-[-3deg] hover:rotate-0 transition-transform"
+                                className="bg-center bg-no-repeat aspect-square bg-cover rounded-[2rem] h-48 w-48 border-8 border-slate-800 shadow-2xl rotate-[-3deg] hover:rotate-0 transition-transform"
                                 style={{ backgroundImage: `url(${profile.avatarfull})` }}
                             />
-                            <div className="absolute -bottom-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg rotate-6">
+                            <div className="absolute -bottom-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg rotate-12">
                                 ONLINE (PROBABLY)
                             </div>
                         </div>
@@ -518,13 +577,109 @@ const SteamStatDashboard = () => {
                         })}
                     </div>
                 </section>
+
+                {/* Specially for You Section */}
+                {recommendedGames.length > 0 && (
+                    <section className="mb-16">
+                        <div className="flex items-center justify-between mb-10 px-2">
+                            <div>
+                                <h2 className="text-4xl font-black text-white">Specially for You</h2>
+                                <p className="text-slate-500 font-medium">Because we know your weaknesses.</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {recommendedGames.map((game) => (
+                                <div key={game.id} className="min-w-[340px] bg-slate-900/40 rounded-[2.5rem] border-4 border-slate-800 overflow-hidden flex flex-col group hover:shadow-2xl hover:border-purple-500/50 transition-all">
+                                    <div className="relative h-48 w-full bg-center bg-cover bg-slate-700" style={{ backgroundImage: `url(${game.large_capsule_image || game.header_image})` }}>
+                                        {game.discounted && (
+                                            <div className="absolute top-4 left-4 px-4 py-2 bg-green-500 text-white text-xs font-black rounded-full shadow-lg tracking-wide">
+                                                -{game.discount_percent}% OFF!
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-8">
+                                        <h4 className="font-black text-white text-2xl mb-2">{game.name}</h4>
+                                        <p className="text-sm text-slate-500 mb-6 font-medium italic">"Your next addiction awaits..."</p>
+                                        <div className="flex items-center justify-between">
+                                            {game.discounted ? (
+                                                <div className="flex flex-col">
+                                                    <span className="text-slate-500 line-through text-sm">{formatPrice(game.original_price, game.currency)}</span>
+                                                    <span className="text-green-500 font-black text-2xl">{formatPrice(game.final_price, game.currency)}</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-purple-500 font-black text-2xl">{formatPrice(game.final_price, game.currency)}</span>
+                                            )}
+                                            <a
+                                                href={`https://store.steampowered.com/app/${game.id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 bg-purple-500 text-white px-6 py-3 rounded-2xl font-black text-sm transition-transform hover:scale-105 shadow-lg"
+                                            >
+                                                <Award className="w-5 h-5" />
+                                                Get It
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Top Deals Section */}
+                {topDeals.length > 0 && (
+                    <section className="pb-24">
+                        <div className="flex items-center justify-between mb-10 px-2">
+                            <div>
+                                <h2 className="text-4xl font-black text-white">Top Deals Right Now</h2>
+                                <p className="text-slate-500 font-medium">Since you clearly have nothing better to do with your money.</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-8 overflow-x-auto custom-scrollbar pb-10 px-2">
+                            {topDeals.map((game) => (
+                                <div key={game.id} className="max-w-[340px] flex-shrink-0 bg-slate-900/40 rounded-[2.5rem] border-4 border-slate-800 overflow-hidden flex flex-col group hover:shadow-2xl hover:border-red-500/50 transition-all">
+                                    <div className="relative h-48 w-full bg-center bg-cover bg-slate-700" style={{ backgroundImage: `url(${game.large_capsule_image || game.header_image})` }}>
+                                        {game.discounted && (
+                                            <div className="absolute top-4 left-4 px-4 py-2 bg-red-500 text-white text-xs font-black rounded-full shadow-lg tracking-wide animate-pulse">
+                                                SAVE {game.discount_percent}%!
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-8">
+                                        <h4 className="font-black overflow-hidden text-white text-2xl mb-2">{game.name.length > 17 ? `${game.name.slice(0,15)}..` : game.name}</h4>
+                                        <p className="text-sm text-slate-500 mb-6 font-medium italic">"Limited time to waste your money!"</p>
+                                        <div className="flex items-center justify-between">
+                                            {game.discounted ? (
+                                                <div className="flex flex-col">
+                                                    <span className="text-slate-500 line-through text-sm">{formatPrice(game.original_price, game.currency)}</span>
+                                                    <span className="text-red-500 font-black text-2xl">{formatPrice(game.final_price, game.currency)}</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-red-500 font-black text-2xl">{formatPrice(game.final_price, game.currency)}</span>
+                                            )}
+                                            <a
+                                                href={`https://store.steampowered.com/app/${game.id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-2xl font-black text-sm transition-transform hover:scale-105 shadow-lg"
+                                            >
+                                                <TrendingUp className="w-5 h-5" />
+                                                Grab It
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </main>
 
             {/* Footer */}
             <footer className="border-t border-slate-800 py-16 bg-slate-950">
                 <div className="max-w-6xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-10">
                     <div className="flex items-center gap-3">
-                        <div className="text-primary">
+                        <div className="text-red-500">
                             <svg className="size-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.1288 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"/>
                             </svg>
